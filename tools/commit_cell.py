@@ -99,7 +99,12 @@ def main() -> int:
 
     run(["git", "commit", "-m", args.message], repo)
     if not args.no_push:
-        run(["git", "push"], repo)
+        branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                                cwd=str(repo), text=True, capture_output=True).stdout.strip()
+        tracked = subprocess.run(["git", "rev-parse", "--abbrev-ref", "@{u}"],
+                                 cwd=str(repo), capture_output=True).returncode == 0
+        run(["git", "push"] if tracked
+            else ["git", "push", "--set-upstream", "origin", branch], repo)
     return 0
 
 
