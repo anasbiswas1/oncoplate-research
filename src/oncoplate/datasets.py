@@ -40,6 +40,9 @@ def image_hashes(path):
     return sha256(path),f"{dh:016x}",w,h
 
 
+MAX_MISSING_IMAGES=20
+
+
 def audit_foodnextdb(root, output):
     root=Path(root);output=Path(output);output.mkdir(parents=True,exist_ok=True)
     files=list(root.rglob("*_labeled_data.csv"))
@@ -68,9 +71,15 @@ def audit_foodnextdb(root, output):
                         "reference_kind":"expert_visual","review_complete":False}
                 record.update({f:normalize(v) for f,v in zip(FIELDS,vs)})
                 rows.append(record)
+    excluded_missing=[]
     if missing:
+        # Upstream archive gap: the published CSVs reference images absent from the
+        # distributed ZIP. Excluded here and reported; never silently dropped.
         write_table(output/"missing_images.csv",pd.DataFrame(missing))
-        raise ValueError(f"{len(missing)} annotation records lack images; see missing_images.csv")
+        excluded_missing=sorted({m["image_id"] for m in missing})
+        if len(excluded_missing)>MAX_MISSING_IMAGES:
+            raise ValueError(f"{len(excluded_missing)} distinct images missing; exceeds tolerance {MAX_MISSING_IMAGES}")
+        rows=[r for r in rows if r["record_id"] not in set(excluded_missing)]
     ann=pd.DataFrame(rows)
     if ann.empty:raise ValueError("No usable annotations")
     records=[];broken=[]
@@ -92,6 +101,9 @@ def audit_foodnextdb(root, output):
             "reviewers":ann.reviewer_id.nunique(),"vocabulary_sizes":{k:len(v) for k,v in vocab.items()},
             "exact_duplicate_records":int(manifest.duplicated("sha256",keep=False).sum()),
             "protocol_confirmation_required":True,
+            "excluded_missing_images":excluded_missing,
+            "excluded_missing_image_count":len(excluded_missing),
+            "excluded_annotation_rows":len(missing),
             "note":"No cross-reviewer item alignment inferred. Complete-row tuples and reviewer-level presence are retained."}
     write_table(output/"records.csv",manifest);write_table(output/"annotations.csv",ann)
     write_json(output/"vocabulary_audit.json",vocab);write_json(output/"dataset_audit.json",report)
