@@ -1,0 +1,1 @@
+record_id,group_id,split,action_id,candidate_confidence,joint_marginal_gap,entropy,specificity,n_sources,has_documentary,source_age_days,missing_premises,source_conflicts,unknown_mass,supported_gain,unsupported_gain,cost_units

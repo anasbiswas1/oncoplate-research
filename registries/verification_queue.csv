@@ -1,0 +1,3 @@
+﻿candidate,identifier,status,reason,next_action
+IntroConformal,arXiv:2609.01375,PRIMARY_RECHECK_PENDING,Primary abs and HTML endpoints could not be re-fetched on 2026-09-18; not evidence of nonexistence,Verify primary full text and exact guarantee before inclusion
+Earlier source-plan novelty claims,Source plan v1.2 Section 10,NOT_ADOPTED,No exhaustive priority search completed,Complete focused literature and backward/forward citation review before lock

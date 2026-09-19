@@ -1,0 +1,67 @@
+project:
+  name: OncoPlate
+  plan_version: '3.0'
+  software_version: '3.0.0'
+  owner: Md Anas Biswas
+  git_email: anasstudyai@gmail.com
+  repository: https://github.com/anasbiswas1/oncoplate-research
+paths:
+  drive_root: /content/drive/MyDrive/OncoPlate_Research
+  local_root: /content/oncoplate_runtime
+study:
+  dataset: foodnextdb
+  split_seed: 0
+  model_seeds: [0, 1, 2, 3, 4]
+  fractions: {fit: 0.48, validation: 0.12, calibration: 0.20, test: 0.20}
+  bootstrap_replicates: 1000
+  domain_mixture: {meal: 0.60, product: 0.40}
+  coverage_targets: [0.50, 0.70, 0.80, 0.90]
+  primary_coverage: 0.80
+  coverage_margin: 0.05
+  primary_anchor: dinov2_vits14_finetune_joint_s0
+  action_budget: 0
+  secondary_action_budget: 1
+  oof_folds: 4
+  independent_fields: [category, subcategory, cooking_style, animal_source, processing_status, surface_appearance]
+  tuple_fields: [category, subcategory, cooking_style]
+training:
+  batch_size: 32
+  head_batch_size: 128
+  effective_batch_size: 128
+  max_epochs: 50
+  head_epochs: 100
+  patience: 10
+  head_lr: 0.001
+  finetune_lr: 0.00003
+  weight_decay: 0.0001
+  num_workers: 2
+  image_size: 224
+  precision: auto
+  gradient_clip: 1.0
+  deterministic: true
+  checkpoint_every_batches: 100
+  pretrained: true
+  frozen_head: linear
+  enable_horizontal_flip: false
+  # Full-frame resize+pad; no random crop that silently removes labelled items.
+  preprocessing: letterbox_imagenet
+backbones:
+  resnet50: {provider: torchvision, checkpoint: IMAGENET1K_V2, feature_dim: 2048}
+  convnext_tiny: {provider: torchvision, checkpoint: IMAGENET1K_V1, feature_dim: 768}
+  dinov2_vits14: {provider: transformers, checkpoint: facebook/dinov2-small, feature_dim: 384}
+data:
+  foodnextdb_url: https://bidalab.eps.uam.es/static/AI4FoodDB/FoodNExtDB.zip
+  foodnextdb_expected_sha256: null
+  annotation_glob: '**/*_labeled_data.csv'
+  public_absence_policy: recorded_panel_nonendorsement_given_observed_bundle
+  near_duplicate_hamming_distance: 3
+  minimum_fit_positive_support: 1
+  # Missing candidate classes at test are reported as unseen, not remapped.
+vlm:
+  qwen: {model_id: Qwen/Qwen2.5-VL-7B-Instruct, revision: null, family: qwen2_5_vl}
+  smol: {model_id: HuggingFaceTB/SmolVLM-Instruct, revision: null, family: smolvlm}
+  max_new_tokens: 384
+  do_sample: false
+  quantize_4bit: false
+  allow_external_api: false
+  input_modes: [image_only, metadata_only, multimodal]

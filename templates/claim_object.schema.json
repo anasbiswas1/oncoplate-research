@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoPlate claim object planning contract v3.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "claim_id",
+    "claim_family",
+    "value",
+    "qualifier",
+    "source_ids",
+    "missing_premises",
+    "conflict_flags",
+    "evidence_version",
+    "model_hash",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "3.0"
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_family": {
+      "enum": [
+        "food_identity",
+        "animal_source",
+        "processing_status",
+        "preparation_method",
+        "surface_appearance",
+        "missing_information",
+        "evidence_context",
+        "logged_pattern"
+      ]
+    },
+    "value": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "qualifier": {
+      "enum": [
+        "predicted",
+        "recorded",
+        "observed",
+        "not_established",
+        "general_evidence",
+        "conflicting"
+      ]
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "missing_premises": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "conflict_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "support_score": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "model_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "eligible",
+        "withheld",
+        "error"
+      ]
+    },
+    "informative": {
+      "type": "boolean"
+    },
+    "public_release_approved": {
+      "const": false
+    }
+  },
+  "$comment": "Draft planning validation only; valid JSON is not scientific support or authorisation. Requires domain approval before operational use."
+}

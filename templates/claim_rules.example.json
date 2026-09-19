@@ -1,0 +1,22 @@
+{
+  "processing_status": {
+    "claim_id": "processing_attribute",
+    "fields": [
+      "processing_status"
+    ],
+    "values": [
+      "processed_meat",
+      "unprocessed_meat",
+      "not_applicable"
+    ],
+    "qualifiers": [
+      "predicted",
+      "recorded"
+    ],
+    "documentary_for_recorded": true,
+    "specificity": 1,
+    "review_status": "pending_domain_review",
+    "review_reference": "",
+    "evidence_id": ""
+  }
+}

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Cite the actual software version used; this repository is not a published research result."
+title: "OncoPlate Research: Evidence-Grounded Multimodal Dietary-Information Experiments"
+type: software
+authors:
+  - family-names: Biswas
+    given-names: Md Anas
+version: 3.0.0
+date-released: 2026-09-18
+abstract: "Research implementation and experiment notebooks. No clinical or chemical validation is implied."

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoPlate visible inference state",
+  "type": "object",
+  "required": [
+    "focal_field",
+    "focal_item_id",
+    "visual_scope",
+    "sources"
+  ],
+  "properties": {
+    "focal_field": {
+      "type": "string"
+    },
+    "focal_item_id": {
+      "type": "string"
+    },
+    "visual_scope": {
+      "enum": [
+        "record_presence",
+        "single_item",
+        "focal_crop"
+      ]
+    },
+    "sources": {
+      "type": "array"
+    },
+    "predicted_joint_marginal_gap": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": false
+}

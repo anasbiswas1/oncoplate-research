@@ -1,0 +1,9 @@
+﻿claim_id,family,qualifier_policy,required_premises,source_reference_ids,restriction,domain_approved
+C01,food_identity,predicted_or_recorded,Visual prediction or relevant documentary record with explicit qualifier,R05,No chemical or clinical assertion,no
+C02,animal_source,predicted_or_recorded,Ingredient or recipe evidence; otherwise clearly qualified model prediction,R01,Species and processing not conflated,no
+C03,processing_status,recorded_or_unknown,Domain-reviewed processing definition and sufficient linked ingredient/preparation record,R01;R02,No additive-code or appearance-only shortcut,no
+C04,preparation_method,predicted_or_recorded,Correct linked food item and permissible method evidence,R03;R05,No transfer from side dish,no
+C05,surface_appearance,observed_or_predicted,Independent visual appearance target,R03,Never output a chemical concentration,no
+C06,missing_information,not_established,Missing required premise or source conflict identified,,Does not count as answered focal task,no
+C07,evidence_context,general_source_attributed,Reviewed source card and version,R01;R02;R03,Not a personal risk estimate,no
+C08,logged_pattern,later_stage_only,Confirmed amounts units period and log completeness,R02,Not part of initial primary task,no

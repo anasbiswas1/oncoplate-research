@@ -1,0 +1,15 @@
+﻿id,planning_window,objective,owner_role,dependencies,deliverable,status
+WP0,Now / pre-execution,Amend scope and request supervisor decision,Anas; supervisor,owner_direction,target_and_decision_record.md,PLANNED
+WP1,W1-2,Review evidence and finite claims,Anas; domain reviewer,WP0,claims_v1_and_evidence_pack,PLANNED
+WP2,W1-4,Permissions ethics privacy and budget,Supervisor; institutional support,WP0,permissions_and_resource_register,PLANNED
+WP3,W2-5,Audit public data and seed-0 foundation,Anas,WP0;authorised_data,baseline_validation_package,PLANNED
+WP4,W3-6,Collect and analyse 100-record pilot,Collection lead; reviewers,WP1;WP2,pilot_report_and_precision_inputs,PLANNED
+WP5,W6-12,Acquire main documented benchmark,Collection team,WP4,main_record_manifests,PLANNED
+WP6,W6-14,Reference review leakage and splits,Reviewers; test custodian,WP5,reference_and_split_lock,PLANNED
+WP7,W9-16,Develop PCSI and matched comparators,Anas; supervisor,WP4;development_subset,models_and_unit_test_report,PLANNED
+WP8,W14-20,Replicate calibrate and freeze analysis,Anas,WP6;WP7,analysis_lock_and_fit_registry,PLANNED
+WP9,W18-23,Prospective and external test,Independent evaluator,WP8,fresh_test_results,PLANNED
+WP10,W22-26,Write paper and audit reproducibility,Authors to agree,WP9,manuscript_and_evidence_package,PLANNED
+WP11,W20-26,Build prototype export and retest,App/ML engineering,WP8;rights_clearance,prototype_and_mobile_model_card,PLANNED
+WP12,W26-30,Evaluate understanding and burden,User-study lead; domain reviewer,WP11;human_study_approval,user_study_report,PLANNED
+WP-L,Parallel optional,Assay feasibility and laboratory protocol,Analytical food-science partner,lab_resources_and_approvals,assay_pilot_report,PLANNED

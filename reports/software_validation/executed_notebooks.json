@@ -1,0 +1,14 @@
+[
+  {
+    "notebook": "00_environment_and_permissions",
+    "status": "passed",
+    "seconds": 17.71,
+    "code_cells": 6
+  },
+  {
+    "notebook": "90_offline_end_to_end_demo",
+    "status": "passed",
+    "seconds": 5.89,
+    "code_cells": 4
+  }
+]

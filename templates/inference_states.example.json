@@ -1,0 +1,8 @@
+{
+  "EXAMPLE_REPLACE_001": {
+    "focal_field": "processing_status",
+    "focal_item_id": "item1",
+    "visual_scope": "single_item",
+    "sources": []
+  }
+}

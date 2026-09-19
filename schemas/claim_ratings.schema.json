@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoPlate independently adjudicated claim rating",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "factual_status",
+    "evidential_status",
+    "informative",
+    "adjudication_id"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "factual_status": {
+      "enum": [
+        "supported",
+        "contradicted",
+        "unknown",
+        "unverifiable"
+      ]
+    },
+    "evidential_status": {
+      "enum": [
+        "supported",
+        "unknown",
+        "unverifiable",
+        "unsupported"
+      ]
+    },
+    "informative": {
+      "type": "boolean"
+    },
+    "adjudication_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
