@@ -132,3 +132,73 @@ equal the uncalibrated rows. Intervals at different coverages come from the same
 are not a test of the change between coverages. ECE intervals are less reliable than log-loss
 intervals. Single seed; validation was also used for early stopping and learning-rate selection.
 ResNet-50 frozen is a control model in the accepted plan; the principal anchor is DINOv2.
+
+## Notebook 29: DINOv2 frozen heads (seed 0)
+DINOv2-small (dinov2_vits14, frozen CLS features), base-rate initialised heads, learning rates
+0.001, 0.003 and 0.01, 400-epoch cap; all six runs ended by early stopping (13 to 43 epochs).
+Learning rate 0.001 was selected for both heads by validation loss. Intervals are paired
+participant-group bootstrap, 1000 replicates. Test records are not read.
+
+### Validation, identical records
+| Head | Model | Log-loss | ECE | Top-1 |
+|---|---|---|---|---|
+| Independent | Frequency baseline (no image) | 0.1731 | 0.0055 | 0.503 |
+| Independent | ResNet-50, lr 0.001 (notebook 27) | 0.1263 | 0.0125 | 0.797 |
+| Independent | DINOv2, lr 0.001, stopped at 43 | 0.1058 | 0.0036 | 0.862 |
+| Independent | DINOv2, lr 0.003, stopped at 19 | 0.1063 | 0.0048 | 0.853 |
+| Independent | DINOv2, lr 0.01, stopped at 13 | 0.1094 | 0.0037 | 0.849 |
+| Joint | Frequency baseline (no image) | 0.0329 | 0.0009 | 0.225 |
+| Joint | ResNet-50, lr 0.001 (notebook 27) | 0.0266 | 0.0025 | 0.455 |
+| Joint | DINOv2, lr 0.001, stopped at 43 | 0.0227 | 0.0009 | 0.594 |
+| Joint | DINOv2, lr 0.003, stopped at 20 | 0.0228 | 0.0010 | 0.594 |
+| Joint | DINOv2, lr 0.01, stopped at 13 | 0.0236 | 0.0013 | 0.569 |
+
+### Calibration partition (neither backbone used it for selection)
+| Head | Model | Log-loss | ECE | Top-1 |
+|---|---|---|---|---|
+| Independent | Frequency baseline (no image) | 0.1674 | 0.0043 | 0.467 |
+| Independent | ResNet-50, base-rate head | 0.1231 | 0.0133 | 0.798 |
+| Independent | DINOv2, base-rate head | 0.1054 | 0.0046 | 0.848 |
+| Joint | Frequency baseline (no image) | 0.0318 | 0.0005 | 0.213 |
+| Joint | ResNet-50, base-rate head | 0.0258 | 0.0026 | 0.478 |
+| Joint | DINOv2, base-rate head | 0.0226 | 0.0011 | 0.563 |
+
+DINOv2 minus ResNet-50, 95% interval: independent log-loss -0.0177 [-0.0207, -0.0151],
+top-1 +0.050 [+0.028, +0.072]; joint log-loss -0.0032 [-0.0036, -0.0029],
+top-1 +0.085 [+0.067, +0.104]. All four intervals exclude zero.
+
+### Calibration of the selected DINOv2 heads, validation
+| Head | Calibrator | Log-loss | ECE | Top-1 |
+|---|---|---|---|---|
+| Independent | Uncalibrated | 0.10582 | 0.0036 | 0.862 |
+| Independent | Temperature (T = 0.962) | 0.10568 | 0.0031 | 0.862 |
+| Independent | Sigmoid, per label | 0.10591 | 0.0032 | 0.869 |
+| Joint | Uncalibrated | 0.02274 | 0.0009 | 0.594 |
+| Joint | Temperature (T = 0.954) | 0.02268 | 0.0004 | 0.594 |
+| Joint | Sigmoid, per label | 0.02274 | 0.0004 | 0.586 |
+
+Change against uncalibrated, 95% interval:
+| Head | Calibrator | Log-loss change | ECE change |
+|---|---|---|---|
+| Independent | Temperature | -0.000149 [-0.000545, 0.000263] | -0.000529 [-0.001810, 0.001564] |
+| Independent | Sigmoid | 0.000083 [-0.000762, 0.000977] | -0.000359 [-0.003185, 0.003494] |
+| Joint | Temperature | -0.000065 [-0.000194, 0.000071] | -0.000472 [-0.000731, 0.000546] |
+| Joint | Sigmoid | -0.000008 [-0.000196, 0.000200] | -0.000424 [-0.000815, 0.000838] |
+
+None of the eight intervals excludes zero. Temperatures near 1 show the DINOv2 heads are
+close to calibrated without post-hoc correction; the ResNet-50 heads (notebook 28) had
+temperatures of 0.873 and 0.895 and small gains whose intervals excluded zero.
+
+### Selective prediction, validation: panel disagreement among assessable answers
+| Head | Coverage | Uncalibrated and temperature | Sigmoid |
+|---|---|---|---|
+| Independent | 100% | 0.138 [0.095, 0.186] | 0.131 [0.094, 0.173] |
+| Independent | 80% | 0.073 [0.043, 0.111] | 0.071 [0.041, 0.110] |
+| Independent | 50% | 0.023 [0.007, 0.045] | 0.028 [0.010, 0.050] |
+| Joint | 100% | 0.406 [0.348, 0.468] | 0.414 [0.360, 0.474] |
+| Joint | 80% | 0.326 [0.273, 0.380] | 0.330 [0.276, 0.383] |
+| Joint | 50% | 0.191 [0.154, 0.228] | 0.198 [0.159, 0.236] |
+
+Intervals at different coverages come from the same records and are not a test of the change
+between coverages. Single seed; frozen features; validation was also used for early stopping
+and learning-rate selection. The accepted plan's principal anchor is DINOv2 fine-tuned.
