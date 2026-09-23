@@ -33,6 +33,7 @@ class TrainSpec:
     precision: str = "auto"
     checkpoint_every_batches: int = 100
     revision: str | None = None
+    bias_init: str = "default"
 
     @property
     def run_id(self):return f"{self.backbone}_{self.regime}_{self.head}_s{self.seed}"
@@ -61,6 +62,18 @@ class Head(nn.Module):
         self.register_buffer("std",torch.as_tensor(np.ones(n_features) if std is None else std,dtype=torch.float32).clamp_min(1e-6))
         self.net=(nn.Sequential(nn.Linear(n_features,hidden),nn.ReLU(),nn.Dropout(.1),nn.Linear(hidden,n_outputs)) if hidden else nn.Linear(n_features,n_outputs))
     def forward(self,x):return self.net((x-self.mean)/self.std)
+
+
+def prior_initialise(head,y,mask,eps=1e-4):
+    """Zero the output layer weights and set each output bias to the masked base-rate log-odds.
+    With zero weights the untrained head reproduces the frequency baseline exactly."""
+    y=np.asarray(y,dtype=np.float64);m=np.asarray(mask,dtype=np.float64);count=m.sum(0)
+    prevalence=np.clip(np.divide((y*m).sum(0),count,out=np.zeros(y.shape[1]),where=count>0),eps,1-eps)
+    last=head.net if isinstance(head.net,nn.Linear) else head.net[-1]
+    with torch.no_grad():
+        last.weight.zero_()
+        last.bias.copy_(torch.as_tensor(np.log(prevalence/(1-prevalence)),dtype=last.bias.dtype))
+    return prevalence
 
 
 class FullPredictor(nn.Module):
@@ -177,6 +190,7 @@ def predict_dataset(model,ds,batch_size=64,device=None):
 
 
 def train_predictor(records,targets,spec,run_dir,feature_root,*,fit_ids=None,val_ids=None,device=None):
+    if spec.bias_init not in ("default","prior"):raise ValueError(f"Unknown bias_init {spec.bias_init!r}")
     seed_all(spec.seed)
     fit_ids=set(fit_ids or records.loc[records.split=="fit","record_id"])
     val_ids=set(val_ids or records.loc[records.split=="validation","record_id"])
@@ -201,9 +215,11 @@ def train_predictor(records,targets,spec,run_dir,feature_root,*,fit_ids=None,val
         features,_=feature_cache(both,encoder,Path(feature_root)/key,model_identity=identity,size=spec.image_size,batch_size=spec.batch_size,workers=spec.workers,device=device)
         f=features[:len(fr)];v=features[len(fr):]
         model=Head(nf,fy.shape[1],f.mean(0),f.std(0),spec.hidden)
+        if spec.bias_init=="prior":prior_initialise(model,fy,fm)
         tr=TensorDataset(torch.tensor(f),torch.tensor(fy),torch.tensor(fm));va=TensorDataset(torch.tensor(v),torch.tensor(vy),torch.tensor(vm))
     elif spec.regime=="finetune":
         model=FullPredictor(encoder,nf,fy.shape[1],spec.hidden)
+        if spec.bias_init=="prior":prior_initialise(model.head,fy,fm)
         tr=ImageDataset(fr,Letterbox(spec.image_size),fy,fm);va=ImageDataset(vr,Letterbox(spec.image_size),vy,vm)
     else:raise ValueError("Unknown regime")
     identity={"fit_ids":sorted(fr.record_id),"validation_ids":sorted(vr.record_id),"schema_hash":targets["schema"]["schema_hash"],
