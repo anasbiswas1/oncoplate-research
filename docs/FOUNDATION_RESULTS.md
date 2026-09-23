@@ -89,3 +89,46 @@ The frequency baseline's near-zero ECE comes from a constant prediction at the b
 which is calibrated by construction and carries no per-image information. The notebook 21
 calibration and test-set figures were measured on default-initialised heads and do not
 describe these heads.
+
+## Notebook 28: calibration and selective prediction on base-rate heads (seed 0)
+Selected runs: learning rate 0.001 for both heads (notebook 27). Calibrators fitted on the
+calibration partition (1938 records) and compared on validation (992 records). Intervals are
+participant-group bootstrap, 1000 replicates, every calibrator scored on the same draw.
+Test records are not read.
+
+### Validation
+| Head | Calibrator | Log-loss | ECE | Top-1 |
+|---|---|---|---|---|
+| Independent | Frequency baseline (no image) | 0.1731 | 0.0055 | 0.503 |
+| Independent | Uncalibrated | 0.1263 | 0.0125 | 0.797 |
+| Independent | Temperature (T = 0.873) | 0.1246 | 0.0045 | 0.797 |
+| Independent | Sigmoid, per label | 0.1239 | 0.0040 | 0.794 |
+| Joint | Frequency baseline (no image) | 0.0329 | 0.0009 | 0.225 |
+| Joint | Uncalibrated | 0.0266 | 0.0025 | 0.455 |
+| Joint | Temperature (T = 0.895) | 0.0261 | 0.0005 | 0.455 |
+| Joint | Sigmoid, per label | 0.0261 | 0.0008 | 0.470 |
+
+### Change against uncalibrated, 95% interval
+| Head | Calibrator | Log-loss change | ECE change |
+|---|---|---|---|
+| Independent | Temperature | -0.0017 [-0.0033, -0.0002] | -0.0080 [-0.0085, -0.0019] |
+| Independent | Sigmoid | -0.0025 [-0.0051, 0.0004] | -0.0085 [-0.0122, 0.0004] |
+| Joint | Temperature | -0.0005 [-0.0008, -0.0001] | -0.0020 [-0.0024, -0.0007] |
+| Joint | Sigmoid | -0.0005 [-0.0011, 0.0001] | -0.0017 [-0.0024, -0.0002] |
+
+### Selective prediction, validation: panel disagreement among assessable answers
+| Head | Coverage | Uncalibrated and temperature | Sigmoid |
+|---|---|---|---|
+| Independent | 100% | 0.203 [0.145, 0.267] | 0.206 [0.153, 0.256] |
+| Independent | 80% | 0.140 [0.095, 0.193] | 0.152 [0.104, 0.202] |
+| Independent | 50% | 0.090 [0.048, 0.139] | 0.090 [0.055, 0.127] |
+| Joint | 100% | 0.545 [0.493, 0.598] | 0.530 [0.480, 0.584] |
+| Joint | 80% | 0.469 [0.410, 0.528] | 0.455 [0.399, 0.511] |
+| Joint | 50% | 0.340 [0.284, 0.396] | 0.343 [0.288, 0.399] |
+
+Temperatures below 1 show the uncalibrated heads are slightly under-confident. A single
+temperature cannot change the chosen label or the confidence ordering, so its selective rows
+equal the uncalibrated rows. Intervals at different coverages come from the same records and
+are not a test of the change between coverages. ECE intervals are less reliable than log-loss
+intervals. Single seed; validation was also used for early stopping and learning-rate selection.
+ResNet-50 frozen is a control model in the accepted plan; the principal anchor is DINOv2.
