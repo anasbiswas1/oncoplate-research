@@ -55,3 +55,37 @@ that label was observed, as in notebook 21.
 Neither converged head has lower log-loss than the frequency baseline on either partition.
 Both have higher top-1 endorsement. Single seed; no intervals computed. The linear head's
 output biases start near zero, i.e. probability about 0.5 per label.
+
+## Notebook 27: base-rate initialised heads (seed 0, amendment ba0ce10)
+Amendment: TrainSpec.bias_init = "prior" zeroes the output layer weights and sets each output
+bias to the fit-partition base-rate log-odds, so the untrained head reproduces the frequency
+baseline. Same learning rates and 400-epoch cap as notebook 26. All six runs ended by early
+stopping after 12 to 15 epochs. Runs are under runs/foundation_prior_init/. Under the amended
+code, notebook 05 runs are incompatible with the principal grid and are re-run before notebook 08.
+
+### Validation, identical records
+| Head | Model | Log-loss | ECE | Top-1 |
+|---|---|---|---|---|
+| Independent | Frequency baseline (no image) | 0.1731 | 0.0055 | 0.503 |
+| Independent | Base rate, lr 0.001, stopped at 14 | 0.1263 | 0.0125 | 0.797 |
+| Independent | Base rate, lr 0.003, stopped at 12 | 0.1312 | 0.0156 | 0.802 |
+| Independent | Base rate, lr 0.01, stopped at 12 | 0.1611 | 0.0232 | 0.782 |
+| Joint | Frequency baseline (no image) | 0.0329 | 0.0009 | 0.225 |
+| Joint | Base rate, lr 0.001, stopped at 13 | 0.0266 | 0.0025 | 0.455 |
+| Joint | Base rate, lr 0.003, stopped at 13 | 0.0277 | 0.0025 | 0.454 |
+| Joint | Base rate, lr 0.01, stopped at 15 | 0.0369 | 0.0047 | 0.383 |
+
+### Calibration partition, selected configuration, reported once
+| Head | Model | Log-loss | ECE | Top-1 |
+|---|---|---|---|---|
+| Independent | Frequency baseline (no image) | 0.1674 | 0.0043 | 0.467 |
+| Independent | Base rate, lr 0.001, stopped at 14 | 0.1231 | 0.0133 | 0.798 |
+| Joint | Frequency baseline (no image) | 0.0318 | 0.0005 | 0.213 |
+| Joint | Base rate, lr 0.001, stopped at 13 | 0.0258 | 0.0026 | 0.478 |
+
+Both base-rate heads have lower log-loss and higher top-1 endorsement than the frequency
+baseline on validation and on the calibration partition. Single seed; no intervals computed.
+The frequency baseline's near-zero ECE comes from a constant prediction at the base rate,
+which is calibrated by construction and carries no per-image information. The notebook 21
+calibration and test-set figures were measured on default-initialised heads and do not
+describe these heads.
