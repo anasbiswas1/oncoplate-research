@@ -74,6 +74,17 @@ def strip_outputs(repo: Path) -> None:
         print(f"outputs: stripped {len(notebooks)} notebook(s) via nbformat fallback")
     else:
         print(f"outputs: stripped {len(notebooks)} notebook(s) via nbconvert")
+    # Colab keeps widget state, such as download progress bars, in notebook metadata rather than cell outputs.
+    import nbformat
+    cleaned = 0
+    for path in notebooks:
+        nb = nbformat.read(path, as_version=4)
+        if "widgets" in nb.metadata:
+            del nb.metadata["widgets"]
+            nbformat.write(nb, path)
+            cleaned += 1
+    if cleaned:
+        print(f"outputs: removed widget state from {cleaned} notebook(s)")
 
 
 def main() -> int:

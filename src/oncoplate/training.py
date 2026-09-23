@@ -10,7 +10,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader,TensorDataset,Subset
 from .io import digest,write_json,read_json,atomic_npz,write_table,sha256
-from .vision import backbone,ImageDataset,Letterbox,feature_cache,resolve_dino_revision
+from .vision import backbone,ImageDataset,Letterbox,feature_cache,resolve_dino_revision,DinoEncoder
 from .targets import align_targets
 
 
@@ -34,6 +34,7 @@ class TrainSpec:
     checkpoint_every_batches: int = 100
     revision: str | None = None
     bias_init: str = "default"
+    head_init: str | None = None
 
     @property
     def run_id(self):return f"{self.backbone}_{self.regime}_{self.head}_s{self.seed}"
@@ -191,6 +192,7 @@ def predict_dataset(model,ds,batch_size=64,device=None):
 
 def train_predictor(records,targets,spec,run_dir,feature_root,*,fit_ids=None,val_ids=None,device=None):
     if spec.bias_init not in ("default","prior"):raise ValueError(f"Unknown bias_init {spec.bias_init!r}")
+    if spec.head_init and spec.regime!="finetune":raise ValueError("head_init applies to fine-tuning only")
     seed_all(spec.seed)
     fit_ids=set(fit_ids or records.loc[records.split=="fit","record_id"])
     val_ids=set(val_ids or records.loc[records.split=="validation","record_id"])
@@ -220,6 +222,12 @@ def train_predictor(records,targets,spec,run_dir,feature_root,*,fit_ids=None,val
     elif spec.regime=="finetune":
         model=FullPredictor(encoder,nf,fy.shape[1],spec.hidden)
         if spec.bias_init=="prior":prior_initialise(model.head,fy,fm)
+        if spec.head_init:
+            # Linear probe then fine-tune: the head starts from a trained frozen head of the same backbone.
+            source=Path(spec.head_init);source_spec=read_json(source/"run.json")["spec"]
+            if source_spec["backbone"]!=spec.backbone or source_spec["regime"]!="frozen":raise ValueError("head_init must be a frozen run of the same backbone")
+            if read_json(source/"target_schema.json")["schema_hash"]!=targets["schema"]["schema_hash"]:raise ValueError("head_init target schema differs")
+            model.head.load_state_dict(_load_owned(source/"best.pt","cpu")["model"])
         tr=ImageDataset(fr,Letterbox(spec.image_size),fy,fm);va=ImageDataset(vr,Letterbox(spec.image_size),vy,vm)
     else:raise ValueError("Unknown regime")
     identity={"fit_ids":sorted(fr.record_id),"validation_ids":sorted(vr.record_id),"schema_hash":targets["schema"]["schema_hash"],
@@ -227,6 +235,7 @@ def train_predictor(records,targets,spec,run_dir,feature_root,*,fit_ids=None,val
               "image_manifest_hash":digest(pd.concat([fr,vr])[["record_id","sha256"]].to_dict("records")),
               "software_hash":digest({f.name:sha256(f) for f in Path(__file__).parent.glob("*.py")}),
               "torch_version":torch.__version__}
+    if spec.head_init:identity["head_init_sha256"]=sha256(Path(spec.head_init)/"best.pt")
     trained=fit(model,tr,va,spec,run_dir,identity,device=device)
     logits,yy,mm=predict_dataset(trained,va,spec.batch_size,device)
     atomic_npz(Path(run_dir)/"validation_predictions.npz",ids=vr.record_id.to_numpy(dtype=str),logits=logits,y=yy,mask=mm)
@@ -240,6 +249,10 @@ def load_predictor(run_dir,device="cpu"):
     state=_load_owned(run_dir/"best.pt",device)["model"]
     if spec.regime=="frozen":
         model=Head(len(state["mean"]),len(schema["labels"]),hidden=spec.hidden)
+    elif spec.backbone=="dinov2_vits14":
+        # The reload skeleton must match the checkpoint's position-embedding grid.
+        grid=int(round((state["encoder.model.embeddings.position_embeddings"].shape[1]-1)**0.5))
+        model=FullPredictor(DinoEncoder(False,spec.revision,image_size=grid*14),384,len(schema["labels"]),spec.hidden)
     else:
         encoder,nf=backbone(spec.backbone,pretrained=False,revision=spec.revision)
         model=FullPredictor(encoder,nf,len(schema["labels"]),spec.hidden)

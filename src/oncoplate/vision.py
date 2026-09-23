@@ -34,13 +34,13 @@ class ImageDataset(Dataset):
 
 
 class DinoEncoder(nn.Module):
-    def __init__(self,pretrained=True,revision=None):
+    def __init__(self,pretrained=True,revision=None,image_size=224):
         super().__init__()
         from transformers import Dinov2Model,Dinov2Config
         if pretrained:
             self.model=Dinov2Model.from_pretrained("facebook/dinov2-small",revision=revision)
         else:
-            self.model=Dinov2Model(Dinov2Config(hidden_size=384,num_hidden_layers=12,num_attention_heads=6,intermediate_size=1536))
+            self.model=Dinov2Model(Dinov2Config(hidden_size=384,num_hidden_layers=12,num_attention_heads=6,intermediate_size=1536,image_size=image_size))
     def forward(self,x):return self.model(pixel_values=x).last_hidden_state[:,0]
 
 
