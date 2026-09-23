@@ -236,7 +236,13 @@ def train_predictor(records,targets,spec,run_dir,feature_root,*,fit_ids=None,val
               "software_hash":digest({f.name:sha256(f) for f in Path(__file__).parent.glob("*.py")}),
               "torch_version":torch.__version__}
     if spec.head_init:identity["head_init_sha256"]=sha256(Path(spec.head_init)/"best.pt")
-    trained=fit(model,tr,va,spec,run_dir,identity,device=device)
+    if spec.regime=="finetune":
+        # Documented CUDA backward kernels without a deterministic version (bicubic interpolation of
+        # DINOv2 position embeddings, adaptive average pooling) must warn rather than stop fine-tuning.
+        identity["deterministic_algorithms"]="warn_only";torch.use_deterministic_algorithms(True,warn_only=True)
+    try:trained=fit(model,tr,va,spec,run_dir,identity,device=device)
+    finally:
+        if spec.regime=="finetune":torch.use_deterministic_algorithms(True,warn_only=False)
     logits,yy,mm=predict_dataset(trained,va,spec.batch_size,device)
     atomic_npz(Path(run_dir)/"validation_predictions.npz",ids=vr.record_id.to_numpy(dtype=str),logits=logits,y=yy,mask=mm)
     write_json(Path(run_dir)/"target_schema.json",targets["schema"])
